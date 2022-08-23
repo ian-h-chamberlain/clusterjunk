@@ -42,10 +42,10 @@ fn setup_menu(
                 margin: UiRect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
-                ..Default::default()
+                ..default()
             },
             color: button_colors.normal,
-            ..Default::default()
+            ..default()
         })
         .with_children(|parent| {
             parent.spawn_bundle(TextBundle {
@@ -58,9 +58,9 @@ fn setup_menu(
                             color: Color::rgb(0.9, 0.9, 0.9),
                         },
                     }],
-                    alignment: Default::default(),
+                    alignment: default(),
                 },
-                ..Default::default()
+                ..default()
             });
         });
 }

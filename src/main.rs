@@ -22,7 +22,7 @@ fn main() {
             height: 600.,
             title: "Clusterjunk!".to_string(),
             canvas: Some("#bevy".to_owned()),
-            ..Default::default()
+            ..default()
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))

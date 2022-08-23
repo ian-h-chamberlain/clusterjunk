@@ -28,7 +28,7 @@ fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
             texture: textures.texture_bevy.clone(),
             transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0))
                 .with_scale(Vec3::splat(0.4)),
-            ..Default::default()
+            ..default()
         })
         .insert(Collider::ball(130.0))
         .insert(Player)
