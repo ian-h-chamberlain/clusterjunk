@@ -1,0 +1,24 @@
+{
+  "template": "https://github.com/ian-h-chamberlain/bevy_cookiecutter",
+  "commit": "36e33763ca338f5f192a39a0b3c42e8754040753",
+  "context": {
+    "cookiecutter": {
+      "project_name": "Clusterjunk!",
+      "author_name": "Ian Chamberlain",
+      "author_email": "ian.h.chamberlain@gmail.com",
+      "crate_name": "clusterjunk",
+      "osx_short_name": "clusterjunk",
+      "osx_bundle_id": "com.example.clusterjunk",
+      "_copy_without_render": [
+        "assets/*",
+        ".github/workflows/ci.yml",
+        ".github/workflows/deploy-page.yml"
+      ],
+      "_extensions": [
+        "cookiecutter.extensions.SlugifyExtension"
+      ],
+      "_template": "https://github.com/ian-h-chamberlain/bevy_cookiecutter"
+    }
+  },
+  "directory": null
+}
