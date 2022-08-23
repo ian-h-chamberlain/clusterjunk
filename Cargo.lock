@@ -981,7 +981,9 @@ dependencies = [
  "bevy_kira_audio",
  "bevy_rapier2d",
  "embed-resource",
+ "image",
  "rand",
+ "winit",
 ]
 
 [[package]]

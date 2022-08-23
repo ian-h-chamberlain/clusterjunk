@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/ian-h-chamberlain/bevy_cookiecutter",
-  "commit": "36e33763ca338f5f192a39a0b3c42e8754040753",
+  "commit": "326f1e89c15e2d6281e346bc7f1c9ee6a09d88e2",
   "context": {
     "cookiecutter": {
       "project_name": "Clusterjunk!",
@@ -20,5 +20,6 @@
       "_template": "https://github.com/ian-h-chamberlain/bevy_cookiecutter"
     }
   },
-  "directory": null
+  "directory": null,
+  "checkout": null
 }
