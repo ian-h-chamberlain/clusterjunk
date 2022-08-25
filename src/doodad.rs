@@ -52,7 +52,7 @@ fn spawn_doodads(
             .spawn_bundle(ColorMesh2dBundle {
                 mesh: assets.square.mesh.clone().into(),
                 material: assets.square.material.clone(),
-                transform: Transform::from_translation(shape_pos.extend(0.0))
+                transform: Transform::from_translation(shape_pos.extend(10.0))
                     .with_scale(Vec3::splat(0.25)),
                 ..default()
             })

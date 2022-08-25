@@ -12,8 +12,15 @@ impl Groups {
     pub fn player() -> CollisionGroups {
         CollisionGroups {
             memberships: Self::PLAYER.bits(),
-            filters: Self::PLAYER.bits() | Self::LEVEL.bits(),
+            filters: Self::LEVEL.bits(),
         }
+    }
+
+    pub fn player_interaction() -> InteractionGroups {
+        InteractionGroups::new(
+            Self::PLAYER.bits() | Self::DOODAD.bits(),
+            Self::DOODAD.bits(),
+        )
     }
 
     pub fn doodad() -> CollisionGroups {

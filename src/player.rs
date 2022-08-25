@@ -1,7 +1,8 @@
 use crate::actions::Actions;
+use crate::doodad::Doodad;
 use crate::loading::TextureAssets;
 use crate::{collision, GameState};
-use bevy::prelude::*;
+use bevy::{log, prelude::*};
 use bevy_rapier2d::prelude::*;
 
 pub struct PlayerPlugin;
@@ -18,7 +19,11 @@ impl Plugin for PlayerPlugin {
                 .with_system(spawn_player)
                 .with_system(spawn_floor),
         )
-        .add_system_set(SystemSet::on_update(GameState::Playing).with_system(move_player));
+        .add_system_set(
+            SystemSet::on_update(GameState::Playing)
+                .with_system(move_player)
+                .with_system(combine_with_doodads),
+        );
     }
 }
 
@@ -72,5 +77,52 @@ fn move_player(
         // flip it so that left-arrow moves us left (rotates CCW)
         player_vel.angvel =
             (player_vel.angvel - x_mov).clamp(-MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED);
+    }
+}
+
+fn combine_with_doodads(
+    mut commands: Commands,
+    rapier_context: Res<RapierContext>,
+    actions: Res<Actions>,
+    player_q: Query<(Entity, &GlobalTransform, &Collider), With<Player>>,
+    mut doodads: Query<
+        (&mut Transform, &GlobalTransform, &mut CollisionGroups),
+        (With<Doodad>, Without<Player>),
+    >,
+) {
+    if !actions.combine {
+        return;
+    }
+
+    let filter = QueryFilter::default().groups(collision::Groups::player_interaction());
+
+    for (player, player_transform, player_collider) in &player_q {
+        let player_transform = player_transform.compute_transform();
+        // assume axis is always correct since this is 2D
+        let (_axis, angle) = player_transform.rotation.to_axis_angle();
+
+        rapier_context.intersections_with_shape(
+            player_transform.translation.truncate(),
+            angle,
+            player_collider,
+            filter,
+            |doodad| {
+                if let Ok((mut transform, global_transform, mut collision_groups)) =
+                    doodads.get_mut(doodad)
+                {
+                    log::info!("Adding a doodad {doodad:?}");
+                    *collision_groups = collision::Groups::player();
+                    commands.entity(doodad).remove::<RigidBody>().insert(Player);
+                    commands.entity(player).add_child(doodad);
+
+                    *transform = Transform::from_matrix(
+                        player_transform.compute_matrix().inverse()
+                            * global_transform.compute_matrix(),
+                    );
+                }
+
+                true
+            },
+        );
     }
 }
