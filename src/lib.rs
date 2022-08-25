@@ -3,6 +3,7 @@ mod audio;
 mod doodad;
 mod loading;
 mod menu;
+mod collision;
 mod player;
 
 use crate::actions::ActionsPlugin;

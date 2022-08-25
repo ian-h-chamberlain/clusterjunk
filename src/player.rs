@@ -1,6 +1,6 @@
 use crate::actions::Actions;
 use crate::loading::TextureAssets;
-use crate::GameState;
+use crate::{collision, GameState};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -30,6 +30,7 @@ fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
                 .with_scale(Vec3::splat(0.4)),
             ..default()
         })
+        .insert(collision::Groups::player())
         .insert(Collider::ball(130.0))
         .insert(Player)
         .insert(Restitution::coefficient(0.5))
@@ -42,6 +43,7 @@ fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
 fn spawn_floor(mut commands: Commands) {
     commands
         .spawn()
+        .insert(collision::Groups::level())
         .insert(Collider::cuboid(2000.0, 20.0))
         .insert_bundle(TransformBundle::from(Transform::from_xyz(0.0, -200.0, 0.0)));
 }
@@ -58,6 +60,8 @@ fn move_player(
     if actions.player_movement.is_none() {
         return;
     }
+
+    // TODO: control in the air seems necessary to
 
     let x_mov = actions.player_movement.unwrap().x * ANGULAR_ACCEL * time.delta_seconds();
 

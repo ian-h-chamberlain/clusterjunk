@@ -1,9 +1,9 @@
 use std::time::Duration;
 
-use bevy::prelude::*;
+use bevy::{log, prelude::*};
 use bevy_rapier2d::prelude::*;
 
-use crate::GameState;
+use crate::{collision, GameState};
 
 pub struct DoodadPlugin;
 
@@ -27,6 +27,7 @@ struct DoodadAssets {
 struct DoodadAsset {
     mesh: Handle<Mesh>,
     material: Handle<ColorMaterial>,
+    collider: Collider,
 }
 
 fn prepare_meshes(
@@ -40,7 +41,13 @@ fn prepare_meshes(
             color: Color::BLUE,
             ..default()
         });
-        DoodadAsset { mesh, material }
+        let collider = Collider::cuboid(50.0, 50.0);
+
+        DoodadAsset {
+            mesh,
+            material,
+            collider,
+        }
     };
 
     commands.insert_resource(DoodadAssets { square });
@@ -51,18 +58,38 @@ fn spawn_doodads(
     mut spawn_timer: ResMut<SpawnTimer>,
     time: Res<Time>,
     assets: Res<DoodadAssets>,
+    rapier_context: Res<RapierContext>,
+    doodads: Query<Entity, With<Doodad>>,
 ) {
     if spawn_timer.0.tick(time.delta()).just_finished() {
-        // TOOD check for collision before spawning it
+        let collider = assets.square.collider.clone();
+        let shape_pos = Vec2::new(100.0, 0.0);
+        let filter = QueryFilter::default();
+
+        let mut can_spawn = true;
+        rapier_context.intersections_with_shape(shape_pos, 0.0, &collider, filter, |entity| {
+            if doodads.get(entity).is_ok() {
+                can_spawn = false;
+                false
+            } else {
+                true
+            }
+        });
+
+        if !can_spawn {
+            log::debug!("not spawning doodad at {shape_pos:?} that would collide");
+            return;
+        }
 
         commands
             .spawn_bundle(ColorMesh2dBundle {
                 mesh: assets.square.mesh.clone().into(),
                 material: assets.square.material.clone(),
-                transform: Transform::from_xyz(100.0, 0.0, 0.0),
+                transform: Transform::from_translation(shape_pos.extend(0.0)),
                 ..default()
             })
-            .insert(Collider::cuboid(50.0, 50.0))
+            .insert(collision::Groups::doodad())
+            .insert(collider)
             .insert(RigidBody::Dynamic)
             .insert(Doodad);
     }
