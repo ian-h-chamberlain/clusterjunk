@@ -35,13 +35,11 @@ fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
                 .with_scale(Vec3::splat(0.2)),
             ..default()
         })
-        .insert(collision::Groups::player())
-        .insert(Collider::ball(130.0))
         .insert(Player)
-        .insert(Restitution::coefficient(0.5))
-        .insert(Friction::new(6.0))
         .insert(RigidBody::Dynamic)
-        .insert(Velocity::zero());
+        .insert(Velocity::zero())
+        .insert(Collider::ball(130.0))
+        .insert_bundle(collision::PlayerBundle::default());
 }
 
 // TODO maybe this becomes a scene plugin or something
@@ -49,8 +47,8 @@ fn spawn_floor(mut commands: Commands) {
     commands
         .spawn()
         .insert(collision::Groups::level())
-        .insert(Collider::cuboid(2000.0, 20.0))
-        .insert_bundle(TransformBundle::from(Transform::from_xyz(0.0, -200.0, 0.0)));
+        .insert(Collider::cuboid(5000.0, 20.0))
+        .insert_bundle(TransformBundle::from(Transform::from_xyz(0.0, -250.0, 0.0)));
 }
 
 fn move_player(
@@ -85,10 +83,7 @@ fn combine_with_doodads(
     rapier_context: Res<RapierContext>,
     actions: Res<Actions>,
     player_q: Query<(Entity, &GlobalTransform, &Collider), With<Player>>,
-    mut doodads: Query<
-        (&mut Transform, &GlobalTransform, &mut CollisionGroups),
-        (With<Doodad>, Without<Player>),
-    >,
+    mut doodads: Query<(&mut Transform, &GlobalTransform), (With<Doodad>, Without<Player>)>,
 ) {
     if !actions.combine {
         return;
@@ -98,7 +93,7 @@ fn combine_with_doodads(
 
     for (player, player_transform, player_collider) in &player_q {
         let player_transform = player_transform.compute_transform();
-        // assume axis is always correct since this is 2D
+        // assume axis is always the same, since this is 2D
         let (_axis, angle) = player_transform.rotation.to_axis_angle();
 
         rapier_context.intersections_with_shape(
@@ -107,20 +102,27 @@ fn combine_with_doodads(
             player_collider,
             filter,
             |doodad| {
-                if let Ok((mut transform, global_transform, mut collision_groups)) =
-                    doodads.get_mut(doodad)
-                {
+                if let Ok((mut transform, global_transform)) = doodads.get_mut(doodad) {
                     log::info!("Adding a doodad {doodad:?}");
-                    *collision_groups = collision::Groups::player();
-                    commands.entity(doodad).remove::<RigidBody>().insert(Player);
                     commands.entity(player).add_child(doodad);
+
+                    commands
+                        .entity(doodad)
+                        // Doodad no longer calculates its own physics
+                        .remove::<RigidBody>()
+                        .remove::<CollisionGroups>()
+                        // And should be treated as a part of the player
+                        .insert(Player)
+                        // For some reason, this doesn't seem to be enough for the
+                        // physics to start working on these colliders...
+                        .insert_bundle(collision::PlayerBundle::default());
 
                     *transform = Transform::from_matrix(
                         player_transform.compute_matrix().inverse()
                             * global_transform.compute_matrix(),
                     );
                 }
-
+                // Match all intersections, not just the first one
                 true
             },
         );

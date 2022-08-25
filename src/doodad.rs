@@ -10,7 +10,7 @@ pub struct DoodadPlugin;
 
 impl Plugin for DoodadPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(SpawnTimer(Timer::new(Duration::from_secs(2), true)))
+        app.insert_resource(SpawnTimer(Timer::new(Duration::from_secs(1), true)))
             .add_system_set(SystemSet::on_update(GameState::Playing).with_system(spawn_doodads));
     }
 }
