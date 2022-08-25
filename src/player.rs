@@ -27,7 +27,7 @@ fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
         .spawn_bundle(SpriteBundle {
             texture: textures.texture_bevy.clone(),
             transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0))
-                .with_scale(Vec3::splat(0.4)),
+                .with_scale(Vec3::splat(0.2)),
             ..default()
         })
         .insert(collision::Groups::player())
@@ -61,7 +61,7 @@ fn move_player(
         return;
     }
 
-    // TODO: control in the air seems necessary to
+    // TODO: control in the air seems necessary too, at some point
 
     let x_mov = actions.player_movement.unwrap().x * ANGULAR_ACCEL * time.delta_seconds();
 
