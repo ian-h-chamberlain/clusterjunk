@@ -73,8 +73,11 @@ fn combine_with_doodads(
     mut commands: Commands,
     rapier_context: Res<RapierContext>,
     actions: Res<Actions>,
-    player_q: Query<(Entity, &GlobalTransform, &Collider), With<Player>>,
-    mut doodads: Query<(&mut Transform, &GlobalTransform), (With<Doodad>, Without<Player>)>,
+    player_q: Query<(Entity, &GlobalTransform, &Collider, &Handle<ColorMaterial>), With<Player>>,
+    mut doodads: Query<
+        (&mut Transform, &GlobalTransform, &mut Handle<ColorMaterial>),
+        (With<Doodad>, Without<Player>),
+    >,
 ) {
     if !actions.combine {
         return;
@@ -82,7 +85,7 @@ fn combine_with_doodads(
 
     let filter = QueryFilter::default().groups(physics::Groups::player_interaction());
 
-    for (player, player_transform, player_collider) in &player_q {
+    for (player, player_transform, player_collider, player_material) in &player_q {
         let player_transform = player_transform.compute_transform();
         // assume axis is always the same, since this is 2D
         let (_axis, angle) = player_transform.rotation.to_axis_angle();
@@ -93,7 +96,8 @@ fn combine_with_doodads(
             player_collider,
             filter,
             |doodad| {
-                if let Ok((mut transform, global_transform)) = doodads.get_mut(doodad) {
+                if let Ok((mut transform, global_transform, mut material)) = doodads.get_mut(doodad)
+                {
                     log::info!("Adding a doodad {doodad:?}");
                     commands.entity(player).add_child(doodad);
 
@@ -108,10 +112,15 @@ fn combine_with_doodads(
                         // physics to start working on these colliders...
                         .insert_bundle(physics::PlayerBundle::default());
 
+                    *material = player_material.clone();
+
                     *transform = Transform::from_matrix(
                         player_transform.compute_matrix().inverse()
                             * global_transform.compute_matrix(),
                     );
+
+                    // to prevent Z-fighting with other doodads, snap to player in Z
+                    transform.translation.z = 0.0;
                 }
                 // Match all intersections, not just the first one
                 true
