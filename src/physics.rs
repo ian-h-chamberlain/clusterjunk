@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
+use crate::loading::MeshAsset;
+
 bitflags::bitflags! {
     pub struct Groups: u32 {
        const PLAYER = 0b0001;
@@ -52,7 +54,47 @@ impl Default for PlayerBundle {
         Self {
             collision_groups: Groups::player(),
             restitution: Restitution::coefficient(0.5),
-            friction: Friction::new(6.0),
+            friction: Friction::new(5.0),
+        }
+    }
+}
+
+#[derive(Bundle)]
+pub struct ColliderBundle {
+    #[bundle]
+    pub mesh: ColorMesh2dBundle,
+    pub collision_groups: CollisionGroups,
+    pub collider: Collider,
+    pub rigidbody: RigidBody,
+}
+
+impl From<&MeshAsset> for ColliderBundle {
+    fn from(asset: &MeshAsset) -> Self {
+        let mesh = asset.mesh.clone().into();
+        let material = asset.material.clone();
+        let collider = asset.collider.clone();
+
+        Self {
+            mesh: ColorMesh2dBundle {
+                mesh,
+                material,
+                ..Default::default()
+            },
+            collision_groups: Groups::doodad(),
+            collider,
+            rigidbody: RigidBody::Dynamic,
+        }
+    }
+}
+
+impl ColliderBundle {
+    pub fn with_transform(self, transform: Transform) -> Self {
+        Self {
+            mesh: ColorMesh2dBundle {
+                transform,
+                ..self.mesh
+            },
+            ..self
         }
     }
 }

@@ -7,15 +7,13 @@ use bevy::prelude::*;
 use bevy::window::WindowId;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
-use bevy_rapier2d::prelude::*;
 use winit::window::Icon;
 
 use clusterjunk::GamePlugin;
 
 fn main() {
-    let mut app = App::new();
-
-    app.insert_resource(Msaa { samples: 1 })
+    App::new()
+        .insert_resource(Msaa { samples: 1 })
         .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
         .insert_resource(WindowDescriptor {
             width: 800.,
@@ -25,14 +23,9 @@ fn main() {
             ..default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         .add_plugin(GamePlugin)
-        .add_startup_system(set_window_icon);
-
-    #[cfg(feature = "dev")]
-    app.add_plugin(RapierDebugRenderPlugin::default());
-
-    app.run();
+        .add_startup_system(set_window_icon)
+        .run();
 }
 
 // Sets the icon on windows and X11

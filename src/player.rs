@@ -1,9 +1,11 @@
-use crate::actions::Actions;
-use crate::doodad::Doodad;
-use crate::loading::TextureAssets;
-use crate::{collision, GameState};
 use bevy::{log, prelude::*};
 use bevy_rapier2d::prelude::*;
+
+use crate::actions::Actions;
+use crate::doodad::Doodad;
+use crate::loading::MeshAssets;
+use crate::physics;
+use crate::GameState;
 
 pub struct PlayerPlugin;
 
@@ -14,41 +16,25 @@ pub struct Player;
 /// Player logic is only active during the State `GameState::Playing`
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_enter(GameState::Playing)
-                .with_system(spawn_player)
-                .with_system(spawn_floor),
-        )
-        .add_system_set(
-            SystemSet::on_update(GameState::Playing)
-                .with_system(move_player)
-                .with_system(combine_with_doodads),
-        );
+        app.add_system_set(SystemSet::on_enter(GameState::Playing).with_system(spawn_player))
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing)
+                    .with_system(move_player)
+                    .with_system(combine_with_doodads),
+            );
     }
 }
 
-fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
+fn spawn_player(mut commands: Commands, meshes: Res<MeshAssets>) {
     commands
-        .spawn_bundle(SpriteBundle {
-            texture: textures.texture_bevy.clone(),
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0))
-                .with_scale(Vec3::splat(0.2)),
-            ..default()
-        })
+        .spawn_bundle(
+            physics::ColliderBundle::from(&meshes.circle).with_transform(
+                Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)).with_scale(Vec3::splat(25.0)),
+            ),
+        )
         .insert(Player)
-        .insert(RigidBody::Dynamic)
         .insert(Velocity::zero())
-        .insert(Collider::ball(130.0))
-        .insert_bundle(collision::PlayerBundle::default());
-}
-
-// TODO maybe this becomes a scene plugin or something
-fn spawn_floor(mut commands: Commands) {
-    commands
-        .spawn()
-        .insert(collision::Groups::level())
-        .insert(Collider::cuboid(5000.0, 20.0))
-        .insert_bundle(TransformBundle::from(Transform::from_xyz(0.0, -250.0, 0.0)));
+        .insert_bundle(physics::PlayerBundle::default());
 }
 
 fn move_player(
@@ -56,9 +42,9 @@ fn move_player(
     actions: Res<Actions>,
     mut player_query: Query<&mut Velocity, With<Player>>,
 ) {
-    // TODO: consider a max linear vel instead of angular...
-    const MAX_ANGULAR_SPEED: f32 = 9.0;
-    const ANGULAR_ACCEL: f32 = 40.0;
+    const MAX_ANGULAR_SPEED: f32 = 30.0;
+    const MAX_LINEAR_SPEED: f32 = 300.0;
+    const ANGULAR_ACCEL: f32 = 75.0;
 
     if actions.player_movement.is_none() {
         return;
@@ -75,6 +61,11 @@ fn move_player(
         // flip it so that left-arrow moves us left (rotates CCW)
         player_vel.angvel =
             (player_vel.angvel - x_mov).clamp(-MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED);
+
+        player_vel.linvel.x = player_vel
+            .linvel
+            .x
+            .clamp(-MAX_LINEAR_SPEED, MAX_LINEAR_SPEED);
     }
 }
 
@@ -89,7 +80,7 @@ fn combine_with_doodads(
         return;
     }
 
-    let filter = QueryFilter::default().groups(collision::Groups::player_interaction());
+    let filter = QueryFilter::default().groups(physics::Groups::player_interaction());
 
     for (player, player_transform, player_collider) in &player_q {
         let player_transform = player_transform.compute_transform();
@@ -115,7 +106,7 @@ fn combine_with_doodads(
                         .insert(Player)
                         // For some reason, this doesn't seem to be enough for the
                         // physics to start working on these colliders...
-                        .insert_bundle(collision::PlayerBundle::default());
+                        .insert_bundle(physics::PlayerBundle::default());
 
                     *transform = Transform::from_matrix(
                         player_transform.compute_matrix().inverse()

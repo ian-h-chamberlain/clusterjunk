@@ -3,8 +3,9 @@ use std::time::Duration;
 use bevy::{log, prelude::*};
 use bevy_rapier2d::prelude::*;
 
-use crate::loading::DoodadAssets;
-use crate::{collision, GameState};
+use crate::loading::MeshAssets;
+use crate::physics;
+use crate::GameState;
 
 pub struct DoodadPlugin;
 
@@ -24,7 +25,7 @@ fn spawn_doodads(
     mut commands: Commands,
     mut spawn_timer: ResMut<SpawnTimer>,
     time: Res<Time>,
-    assets: Res<DoodadAssets>,
+    assets: Res<MeshAssets>,
     rapier_context: Res<RapierContext>,
     doodads: Query<Entity, With<Doodad>>,
 ) {
@@ -44,21 +45,17 @@ fn spawn_doodads(
         });
 
         if !can_spawn {
-            log::debug!("not spawning doodad at {shape_pos:?} that would collide");
+            log::info!("not spawning doodad at {shape_pos:?} that would collide");
             return;
         }
 
         commands
-            .spawn_bundle(ColorMesh2dBundle {
-                mesh: assets.square.mesh.clone().into(),
-                material: assets.square.material.clone(),
-                transform: Transform::from_translation(shape_pos.extend(10.0))
-                    .with_scale(Vec3::splat(0.25)),
-                ..default()
-            })
-            .insert(collision::Groups::doodad())
-            .insert(collider)
-            .insert(RigidBody::Dynamic)
+            .spawn_bundle(
+                physics::ColliderBundle::from(&assets.square).with_transform(
+                    Transform::from_translation(shape_pos.extend(10.0))
+                        .with_scale(Vec3::splat(20.0)),
+                ),
+            )
             .insert(Doodad);
     }
 }

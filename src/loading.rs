@@ -1,8 +1,9 @@
-use crate::GameState;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use bevy_kira_audio::AudioSource;
 use bevy_rapier2d::prelude::*;
+
+use crate::GameState;
 
 pub struct LoadingPlugin;
 
@@ -15,10 +16,9 @@ impl Plugin for LoadingPlugin {
             LoadingState::new(GameState::Loading)
                 .with_collection::<FontAssets>()
                 .with_collection::<AudioAssets>()
-                .with_collection::<TextureAssets>()
                 .continue_to_state(GameState::Menu),
         )
-        .add_system_set(SystemSet::on_enter(GameState::Loading).with_system(load_doodads));
+        .add_system_set(SystemSet::on_enter(GameState::Loading).with_system(build_meshes));
     }
 }
 
@@ -37,41 +37,51 @@ pub struct AudioAssets {
     pub flying: Handle<AudioSource>,
 }
 
-#[derive(AssetCollection)]
-pub struct TextureAssets {
-    #[asset(path = "textures/bevy.png")]
-    pub texture_bevy: Handle<Image>,
+pub struct MeshAssets {
+    pub square: MeshAsset,
+    pub circle: MeshAsset,
 }
 
-pub struct DoodadAssets {
-    pub square: DoodadAsset,
-}
-
-pub struct DoodadAsset {
+pub struct MeshAsset {
     pub mesh: Handle<Mesh>,
     pub material: Handle<ColorMaterial>,
     pub collider: Collider,
 }
 
-fn load_doodads(
+fn build_meshes(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let square = {
-        let mesh = meshes.add(shape::Cube::new(100.0).into());
+        let mesh = meshes.add(shape::Cube::default().into());
         let material = materials.add(ColorMaterial {
             color: Color::BLUE,
             ..default()
         });
-        let collider = Collider::cuboid(50.0, 50.0);
+        let collider = Collider::cuboid(0.5, 0.5);
 
-        DoodadAsset {
+        MeshAsset {
             mesh,
             material,
             collider,
         }
     };
 
-    commands.insert_resource(DoodadAssets { square });
+    let circle = {
+        let mesh = meshes.add(shape::Circle::default().into());
+        let material = materials.add(ColorMaterial {
+            color: Color::RED,
+            ..default()
+        });
+        let collider = Collider::ball(0.5);
+
+        MeshAsset {
+            mesh,
+            material,
+            collider,
+        }
+    };
+
+    commands.insert_resource(MeshAssets { square, circle });
 }

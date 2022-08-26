@@ -1,22 +1,25 @@
+use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
+
+#[cfg(feature = "dev")]
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+
 mod actions;
 mod audio;
-mod collision;
 mod doodad;
+mod level;
 mod loading;
 mod menu;
+mod physics;
 mod player;
 
-use crate::actions::ActionsPlugin;
-use crate::audio::InternalAudioPlugin;
-use crate::doodad::DoodadPlugin;
-use crate::loading::LoadingPlugin;
-use crate::menu::MenuPlugin;
-use crate::player::PlayerPlugin;
-
-use bevy::app::App;
-#[cfg(debug_assertions)]
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::prelude::*;
+use actions::ActionsPlugin;
+use audio::InternalAudioPlugin;
+use doodad::DoodadPlugin;
+use level::LevelPlugin;
+use loading::LoadingPlugin;
+use menu::MenuPlugin;
+use player::PlayerPlugin;
 
 // This example game uses States to separate logic
 // See https://bevy-cheatbook.github.io/programming/states.html
@@ -36,17 +39,18 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_state(GameState::Loading)
+            .add_plugin(<RapierPhysicsPlugin>::pixels_per_meter(50.0))
             .add_plugin(LoadingPlugin)
             .add_plugin(MenuPlugin)
             .add_plugin(ActionsPlugin)
             .add_plugin(InternalAudioPlugin)
             .add_plugin(PlayerPlugin)
+            .add_plugin(LevelPlugin)
             .add_plugin(DoodadPlugin);
 
-        #[cfg(debug_assertions)]
-        {
-            app.add_plugin(FrameTimeDiagnosticsPlugin::default())
-                .add_plugin(LogDiagnosticsPlugin::default());
-        }
+        #[cfg(feature = "dev")]
+        app.add_plugin(RapierDebugRenderPlugin::default())
+            .add_plugin(FrameTimeDiagnosticsPlugin::default())
+            .add_plugin(LogDiagnosticsPlugin::default());
     }
 }
