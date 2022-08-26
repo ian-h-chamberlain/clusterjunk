@@ -78,7 +78,7 @@ impl From<&MeshAsset> for ColliderBundle {
             mesh: ColorMesh2dBundle {
                 mesh,
                 material,
-                ..Default::default()
+                ..default()
             },
             collision_groups: Groups::doodad(),
             collider,

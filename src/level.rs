@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
+use crate::loading::MeshAssets;
 use crate::{physics, GameState};
 
 pub struct LevelPlugin;
@@ -11,10 +12,16 @@ impl Plugin for LevelPlugin {
     }
 }
 
-fn spawn_floor(mut commands: Commands) {
+fn spawn_floor(mut commands: Commands, meshes: Res<MeshAssets>) {
     commands
-        .spawn()
+        .spawn_bundle(ColorMesh2dBundle {
+            material: meshes.floor.material.clone(),
+            mesh: meshes.floor.mesh.clone().into(),
+            ..default()
+        })
         .insert(physics::Groups::level())
-        .insert(Collider::cuboid(500.0, 2.0))
-        .insert_bundle(TransformBundle::from(Transform::from_xyz(0.0, -250.0, 0.0)));
+        .insert(meshes.floor.collider.clone())
+        .insert_bundle(TransformBundle::from(
+            Transform::from_xyz(0.0, -100.0, 0.0).with_scale(Vec3::new(1000.0, 15.0, 1.0)),
+        ));
 }

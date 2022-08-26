@@ -39,7 +39,8 @@ pub struct AudioAssets {
 
 pub struct MeshAssets {
     pub square: MeshAsset,
-    pub circle: MeshAsset,
+    pub player: MeshAsset,
+    pub floor: MeshAsset,
 }
 
 pub struct MeshAsset {
@@ -68,7 +69,20 @@ fn build_meshes(
         }
     };
 
-    let circle = {
+    let floor = {
+        let material = materials.add(ColorMaterial {
+            color: Color::DARK_GRAY,
+            ..default()
+        });
+
+        MeshAsset {
+            material,
+            mesh: square.mesh.clone(),
+            collider: square.collider.clone(),
+        }
+    };
+
+    let player = {
         let mesh = meshes.add(shape::Circle::default().into());
         let material = materials.add(ColorMaterial {
             color: Color::RED,
@@ -83,5 +97,9 @@ fn build_meshes(
         }
     };
 
-    commands.insert_resource(MeshAssets { square, circle });
+    commands.insert_resource(MeshAssets {
+        square,
+        player,
+        floor,
+    });
 }

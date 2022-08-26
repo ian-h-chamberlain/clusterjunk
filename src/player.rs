@@ -28,7 +28,7 @@ impl Plugin for PlayerPlugin {
 fn spawn_player(mut commands: Commands, meshes: Res<MeshAssets>) {
     commands
         .spawn_bundle(
-            physics::ColliderBundle::from(&meshes.circle).with_transform(
+            physics::ColliderBundle::from(&meshes.player).with_transform(
                 Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)).with_scale(Vec3::splat(25.0)),
             ),
         )
