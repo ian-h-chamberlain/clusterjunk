@@ -4,26 +4,18 @@ use bevy_rapier2d::prelude::*;
 use crate::loading::MeshAsset;
 
 bitflags::bitflags! {
-    pub struct Groups: u32 {
-       const PLAYER = 0b0001;
-       const DOODAD = 0b0010;
-       const LEVEL  = 0b0100;
+    pub struct CollideGroups: u32 {
+       const PLAYER = 1 << 0;
+       const DOODAD = 1 << 1;
+       const LEVEL  = 1 << 2;
     }
 }
 
-impl Groups {
+impl CollideGroups {
     pub fn player() -> CollisionGroups {
         CollisionGroups {
             memberships: Self::PLAYER.bits(),
             filters: Self::LEVEL.bits(),
-        }
-    }
-
-    pub fn player_interaction() -> InteractionGroups {
-        InteractionGroups {
-            // I'm not sure why, but this needs to have DOODAD as a member to work.
-            memberships: Self::PLAYER.bits() | Self::DOODAD.bits(),
-            filter: Self::DOODAD.bits(),
         }
     }
 
@@ -52,7 +44,7 @@ pub struct PlayerBundle {
 impl Default for PlayerBundle {
     fn default() -> Self {
         Self {
-            collision_groups: Groups::player(),
+            collision_groups: CollideGroups::player(),
             restitution: Restitution::coefficient(0.5),
             friction: Friction::new(5.0),
         }
@@ -63,7 +55,6 @@ impl Default for PlayerBundle {
 pub struct ColliderBundle {
     #[bundle]
     pub mesh: ColorMesh2dBundle,
-    pub collision_groups: CollisionGroups,
     pub collider: Collider,
     pub rigidbody: RigidBody,
 }
@@ -80,7 +71,6 @@ impl From<&MeshAsset> for ColliderBundle {
                 material,
                 ..default()
             },
-            collision_groups: Groups::doodad(),
             collider,
             rigidbody: RigidBody::Dynamic,
         }

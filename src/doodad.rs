@@ -31,7 +31,7 @@ fn spawn_doodads(
 ) {
     if spawn_timer.0.tick(time.delta()).just_finished() {
         let collider = assets.square.collider.clone();
-        let shape_pos = Vec2::new(100.0, 0.0);
+        let shape_pos = Vec2::new(100.0, -20.0);
         let filter = QueryFilter::default();
 
         let mut can_spawn = true;
@@ -52,10 +52,11 @@ fn spawn_doodads(
         commands
             .spawn_bundle(
                 physics::ColliderBundle::from(&assets.square).with_transform(
-                    Transform::from_translation(shape_pos.extend(10.0))
+                    Transform::from_translation(shape_pos.extend(50.0))
                         .with_scale(Vec3::splat(20.0)),
                 ),
             )
+            .insert(physics::CollideGroups::doodad())
             .insert(Doodad);
     }
 }

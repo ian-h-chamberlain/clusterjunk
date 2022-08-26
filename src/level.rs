@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 use crate::loading::MeshAssets;
 use crate::{physics, GameState};
@@ -18,8 +19,9 @@ fn spawn_floor(mut commands: Commands, meshes: Res<MeshAssets>) {
             mesh: meshes.floor.mesh.clone().into(),
             ..default()
         })
-        .insert(physics::Groups::level())
+        .insert(RigidBody::Fixed)
         .insert(meshes.floor.collider.clone())
+        .insert(physics::CollideGroups::level())
         .insert_bundle(TransformBundle::from(
             Transform::from_xyz(0.0, -100.0, 0.0).with_scale(Vec3::new(1000.0, 15.0, 1.0)),
         ));
