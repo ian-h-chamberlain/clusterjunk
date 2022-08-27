@@ -60,7 +60,7 @@ fn build_meshes(
             color: Color::BLUE,
             ..default()
         });
-        let collider = Collider::cuboid(0.5, 0.5);
+        let collider = Collider::round_cuboid(0.5, 0.5, 0.05);
 
         MeshAsset {
             mesh,

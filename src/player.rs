@@ -27,41 +27,44 @@ impl Plugin for PlayerPlugin {
 
 fn spawn_player(mut commands: Commands, meshes: Res<MeshAssets>) {
     commands
-        .spawn_bundle(
-            physics::ColliderBundle::from(&meshes.player).with_transform(
-                Transform::from_translation(Vec3::new(0.0, 0.0, 10.0))
-                    .with_scale(Vec3::splat(25.0)),
-            ),
-        )
         .insert(Player)
-        .insert(Velocity::zero())
-        .insert_bundle(physics::PlayerBundle::default());
+        .insert(ExternalImpulse::default())
+        .insert(Velocity::default())
+        .insert(Damping {
+            angular_damping: 0.1,
+            ..default()
+        })
+        .insert_bundle(physics::PlayerBundle::default())
 }
 
 fn move_player(
-    time: Res<Time>,
     actions: Res<Actions>,
-    mut player_query: Query<&mut Velocity, With<Player>>,
+    mut player_query: Query<(&mut Velocity, &mut ExternalImpulse), With<Player>>,
+    doodad_query: Query<(), With<Player>>,
 ) {
     const MAX_ANGULAR_SPEED: f32 = 30.0;
     const MAX_LINEAR_SPEED: f32 = 300.0;
-    const ANGULAR_ACCEL: f32 = 75.0;
+    const ANGULAR_IMPULSE: f32 = 0.01;
 
     if actions.player_movement.is_none() {
         return;
     }
 
-    // TODO: control in the air seems necessary too, at some point
-
-    let x_mov = actions.player_movement.unwrap().x * ANGULAR_ACCEL * time.delta_seconds();
-
     // NOTE: besides just pinning X movement, it might be cool to dynamically
     // lower the friction coefficient when we're trying to sanic-ball
 
-    for mut player_vel in &mut player_query {
+    // roughly scale the impulse by the number of attached doodads
+    let doodad_count = doodad_query.into_iter().count() as f32;
+
+    for (mut player_vel, mut impulse) in &mut player_query {
         // flip it so that left-arrow moves us left (rotates CCW)
-        player_vel.angvel =
-            (player_vel.angvel - x_mov).clamp(-MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED);
+
+        impulse.torque_impulse =
+            actions.player_movement.unwrap().x * -ANGULAR_IMPULSE * doodad_count;
+
+        player_vel.angvel = player_vel
+            .angvel
+            .clamp(-MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED);
 
         player_vel.linvel.x = player_vel
             .linvel

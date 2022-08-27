@@ -542,9 +542,9 @@ checksum = "d92d5679e89602a18682a37846573dcd1979410179e14204280460ba9fb8713a"
 
 [[package]]
 name = "bevy_rapier2d"
-version = "0.16.1"
+version = "0.16.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec2582392eb981620e6903ff58312910d05033af925b2e042f4c7bb6a270e358"
+checksum = "e94ea9324a836efedf4b3673a3c5e2011490fa440478d244fe6b1783557ab4fd"
 dependencies = [
  "bevy",
  "bitflags",
@@ -984,6 +984,7 @@ dependencies = [
  "embed-resource",
  "image",
  "rand",
+ "tuples",
  "winit",
 ]
 
@@ -3015,6 +3016,12 @@ name = "ttf-parser"
 version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b3e06c9b9d80ed6b745c7159c40b311ad2916abb34a49e9be2653b90db0d8dd"
+
+[[package]]
+name = "tuples"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "446791a5e330a0dc5939f32eba8704c39b39e6f308740e666e4217bf4f50c3f0"
 
 [[package]]
 name = "typenum"
